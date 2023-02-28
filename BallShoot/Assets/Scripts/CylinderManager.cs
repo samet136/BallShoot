@@ -4,7 +4,7 @@ using UnityEngine;
 using UnityEngine.EventSystems;
 
 
-public class CylinderManager : MonoBehaviour,IPointerDownHandler,IPointerUpHandler
+public class CylinderManager : MonoBehaviour, IPointerDownHandler, IPointerUpHandler
 {
 
     public GameObject Cylinder;
@@ -17,23 +17,23 @@ public class CylinderManager : MonoBehaviour,IPointerDownHandler,IPointerUpHandl
     public void OnPointerDown(PointerEventData eventData)
     {
         ButtonPressed = true;
-        Debug.Log("Basýyorum");
+
     }
 
     public void OnPointerUp(PointerEventData eventData)
     {
         ButtonPressed = false;
-        Debug.Log("Býraktým");
+
     }
 
-   
+
 
     // Update is called once per frame
     void Update()
     {
         if (ButtonPressed)
         {
-            if (Direction=="Left")
+            if (Direction == "Left")
             {
                 Cylinder.transform.Rotate(0, RotateForce * Time.deltaTime, 0, Space.Self);
             }
@@ -41,7 +41,7 @@ public class CylinderManager : MonoBehaviour,IPointerDownHandler,IPointerUpHandl
             {
                 Cylinder.transform.Rotate(0, -RotateForce * Time.deltaTime, 0, Space.Self);
             }
-          
+
         }
         else
         {

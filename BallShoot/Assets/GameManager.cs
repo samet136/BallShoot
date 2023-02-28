@@ -4,45 +4,80 @@ using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
-
+using UnityEngine.SceneManagement;
 
 public class GameManager : MonoBehaviour
 {
     [Header("BALL SETTINGS")]
-    public GameObject[] Balls;
-    public GameObject FirePoint;
+    [SerializeField] private GameObject[] Balls;
+    [SerializeField] private GameObject FirePoint;
     [SerializeField] private float PowerBall;
     int ActiveBallIndex;
     [SerializeField] private int AvailableBall;
+    [SerializeField] private Animator ThrowsBall;
+    [SerializeField] private ParticleSystem ThrowsBallEffect;
+    [SerializeField] private ParticleSystem[] BallEffects;
+    [SerializeField] private AudioSource[] BallSounds;
+    int ActiveBallSoundIndex;
+
 
 
     [Header("LEVEL SETTINGS")]
     [SerializeField] private int TargetBall;
     int EnteringBall;
 
-    public Slider TargetSlider;
-    public TextMeshProUGUI RemainingBallText;
+    [SerializeField] private Slider TargetSlider;
+    [SerializeField] private TextMeshProUGUI RemainingBallText;
+    [Header("UI SETTINGS")]
+    [SerializeField] private GameObject[] Panels;
+    [SerializeField] private TextMeshProUGUI StarCount;
+    [SerializeField] private TextMeshProUGUI WinLevelCount;
+    [SerializeField] private TextMeshProUGUI LostLevelCount;
+    int ActiveBallEffectIndex;
+
+    [Header("OTHER SETTINGS")]
+    [SerializeField] private AudioSource[] OtherSounds;
+    string LevelName;
+
     void Start()
     {
+        ActiveBallEffectIndex = 0;
+        LevelName = SceneManager.GetActiveScene().name;
         TargetSlider.maxValue = TargetBall;
         RemainingBallText.text = AvailableBall.ToString();
     }
     public void BallEntered()
     {
         EnteringBall++;
+
         TargetSlider.value = EnteringBall;
-        if (EnteringBall == AvailableBall)
+
+        BallSounds[ActiveBallSoundIndex].Play();
+        ActiveBallSoundIndex++;
+        if (ActiveBallSoundIndex == BallSounds.Length - 1)
         {
-            //Top Atma Ýþlemini Kilitleyeceðiz
-            Debug.Log("KAZANDIN");
+            ActiveBallSoundIndex = 0;
+        }
+        if (EnteringBall == AvailableBall)
+
+        {
+            Time.timeScale = 0;
+            OtherSounds[1].Play();
+            PlayerPrefs.SetInt("Level", SceneManager.GetActiveScene().buildIndex + 1);
+            PlayerPrefs.SetInt("Star", PlayerPrefs.GetInt("Star") + 15);
+            StarCount.text = PlayerPrefs.GetInt("Star").ToString();
+            WinLevelCount.text = "LEVEL: " + LevelName;
+            Panels[1].SetActive(true);
         }
         if (AvailableBall == 0 && EnteringBall != TargetBall)
         {
-            Debug.Log("Kayebettin");
+            Lost();
+
         }
         if (AvailableBall + EnteringBall < TargetBall)
         {
-            Debug.Log("Kaybettin");
+            Lost();
+
         }
     }
     public void DidntEnter()
@@ -51,33 +86,92 @@ public class GameManager : MonoBehaviour
 
         if (AvailableBall == 0)
         {
-            Debug.Log("Kaybettin");
+            Lost();
+
         }
         if (AvailableBall + EnteringBall < TargetBall)
         {
-            Debug.Log("Kaybettin");
+            OtherSounds[0].Play();
+            LostLevelCount.text = "LEVEL: " + LevelName;
+            Panels[2].SetActive(true);
         }
     }
 
     void Update()
     {
-        if (Input.GetKeyDown(KeyCode.T))
+        if (Time.timeScale != 0)
         {
-            AvailableBall--;
-            RemainingBallText.text = AvailableBall.ToString();
-            Balls[ActiveBallIndex].transform.SetPositionAndRotation(FirePoint.transform.position, FirePoint.transform.rotation);
-            Balls[ActiveBallIndex].SetActive(true);
-
-            Balls[ActiveBallIndex].GetComponent<Rigidbody>().AddForce(Balls[ActiveBallIndex].transform.TransformDirection(90, 90, 0) * PowerBall, ForceMode.Force);
-
-            if (Balls.Length - 1 == ActiveBallIndex)
+            if (Input.GetKeyDown(KeyCode.T))
             {
-                ActiveBallIndex = 0;
-            }
-            else
-            {
-                ActiveBallIndex++;
+                AvailableBall--;
+                RemainingBallText.text = AvailableBall.ToString();
+                ThrowsBall.Play("ThrowsBall");
+                ThrowsBallEffect.Play();
+                OtherSounds[2].Play();
+                Balls[ActiveBallIndex].transform.SetPositionAndRotation(FirePoint.transform.position, FirePoint.transform.rotation);
+                Balls[ActiveBallIndex].SetActive(true);
+
+                Balls[ActiveBallIndex].GetComponent<Rigidbody>().AddForce(Balls[ActiveBallIndex].transform.TransformDirection(90, 90, 0) * PowerBall, ForceMode.Force);
+
+                if (Balls.Length - 1 == ActiveBallIndex)
+                {
+                    ActiveBallIndex = 0;
+                }
+                else
+                {
+                    ActiveBallIndex++;
+                }
             }
         }
+
+    }
+    public void StopGame()
+    {
+        Panels[0].SetActive(true);
+        Time.timeScale = 0;
+    }
+    public void OperationForPanels(string operation)
+    {
+        switch (operation)
+        {
+            case "Continue":
+                Time.timeScale = 1;
+                Panels[0].SetActive(false);
+                break;
+            case "Quit":
+                Application.Quit();
+                break;
+            case "Settings":
+                break;
+            case "Again":
+                Time.timeScale = 1;
+                SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
+                break;
+            case "Next":
+                Time.timeScale = 1;
+                SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex + 1);
+                break;
+        }
+    }
+    public void ParcEffect(Vector3 _position, Color colorr)
+    {
+        BallEffects[ActiveBallEffectIndex].transform.position = _position;
+        var main = BallEffects[ActiveBallEffectIndex].main;
+        main.startColor = colorr;
+        BallEffects[ActiveBallEffectIndex].gameObject.SetActive(true);
+        ActiveBallIndex++;
+
+        if (ActiveBallIndex == BallEffects.Length - 1)
+        {
+            ActiveBallIndex = 0;
+        }
+    }
+    void Lost()
+    {
+        Time.timeScale = 0;
+        OtherSounds[0].Play();
+        LostLevelCount.text = "LEVEL: " + LevelName;
+        Panels[2].SetActive(true);
+
     }
 }
