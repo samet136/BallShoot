@@ -9,25 +9,22 @@ using UnityEngine.SceneManagement;
 public class GameManager : MonoBehaviour
 {
     [Header("BALL SETTINGS")]
-    [SerializeField] private GameObject[] Balls;
-    [SerializeField] private GameObject FirePoint;
-    [SerializeField] private float PowerBall;
-    int ActiveBallIndex;
-    [SerializeField] private int AvailableBall;
+     public GameObject[] Balls;
+    public GameObject FirePoint;
+    public float PowerBall;
+    public int AvailableBall;
     [SerializeField] private Animator ThrowsBall;
     [SerializeField] private ParticleSystem ThrowsBallEffect;
     [SerializeField] private ParticleSystem[] BallEffects;
     [SerializeField] private AudioSource[] BallSounds;
     int ActiveBallSoundIndex;
-
-
-
+    int ActiveBallIndex;
     [Header("LEVEL SETTINGS")]
-    [SerializeField] private int TargetBall;
+    public int TargetBall;
+     [SerializeField] private Slider TargetSlider;
+    [SerializeField] private TextMeshProUGUI RemainingBallText;
     int EnteringBall;
 
-    [SerializeField] private Slider TargetSlider;
-    [SerializeField] private TextMeshProUGUI RemainingBallText;
     [Header("UI SETTINGS")]
     [SerializeField] private GameObject[] Panels;
     [SerializeField] private TextMeshProUGUI StarCount;
@@ -36,7 +33,7 @@ public class GameManager : MonoBehaviour
     int ActiveBallEffectIndex;
 
     [Header("OTHER SETTINGS")]
-    [SerializeField] private AudioSource[] OtherSounds;
+    public AudioSource[] OtherSounds;
     string LevelName;
 
     void Start()
@@ -46,56 +43,8 @@ public class GameManager : MonoBehaviour
         TargetSlider.maxValue = TargetBall;
         RemainingBallText.text = AvailableBall.ToString();
     }
-    public void BallEntered()
-    {
-        EnteringBall++;
-
-        TargetSlider.value = EnteringBall;
-
-        BallSounds[ActiveBallSoundIndex].Play();
-        ActiveBallSoundIndex++;
-        if (ActiveBallSoundIndex == BallSounds.Length - 1)
-        {
-            ActiveBallSoundIndex = 0;
-        }
-        if (EnteringBall == AvailableBall)
-
-        {
-            Time.timeScale = 0;
-            OtherSounds[1].Play();
-            PlayerPrefs.SetInt("Level", SceneManager.GetActiveScene().buildIndex + 1);
-            PlayerPrefs.SetInt("Star", PlayerPrefs.GetInt("Star") + 15);
-            StarCount.text = PlayerPrefs.GetInt("Star").ToString();
-            WinLevelCount.text = "LEVEL: " + LevelName;
-            Panels[1].SetActive(true);
-        }
-        if (AvailableBall == 0 && EnteringBall != TargetBall)
-        {
-            Lost();
-
-        }
-        if (AvailableBall + EnteringBall < TargetBall)
-        {
-            Lost();
-
-        }
-    }
-    public void DidntEnter()
-    {
-
-
-        if (AvailableBall == 0)
-        {
-            Lost();
-
-        }
-        if (AvailableBall + EnteringBall < TargetBall)
-        {
-            OtherSounds[0].Play();
-            LostLevelCount.text = "LEVEL: " + LevelName;
-            Panels[2].SetActive(true);
-        }
-    }
+   
+   
 
     void Update()
     {
@@ -124,6 +73,56 @@ public class GameManager : MonoBehaviour
             }
         }
 
+    }
+    public void BallEntered()
+    {
+        EnteringBall++;
+
+        TargetSlider.value = EnteringBall;
+
+        BallSounds[ActiveBallSoundIndex].Play();
+        ActiveBallSoundIndex++;
+        if (ActiveBallSoundIndex == BallSounds.Length - 1)
+        {
+            ActiveBallSoundIndex = 0;
+        }
+        if (EnteringBall == AvailableBall)
+
+        {
+            Panels[1].SetActive(true);
+            Time.timeScale = 0;
+            OtherSounds[1].Play();
+            PlayerPrefs.SetInt("Level", SceneManager.GetActiveScene().buildIndex + 1);
+            PlayerPrefs.SetInt("Star", PlayerPrefs.GetInt("Star") + 15);
+            StarCount.text = PlayerPrefs.GetInt("Star").ToString();
+            WinLevelCount.text = "LEVEL: " + LevelName;
+        }
+        if (AvailableBall == 0 && EnteringBall != TargetBall)
+        {
+            Lost();
+
+        }
+        if (AvailableBall + EnteringBall < TargetBall)
+        {
+            Lost();
+
+        }
+    }
+    public void DidntEnter()
+    {
+
+
+        if (AvailableBall == 0)
+        {
+            Lost();
+
+        }
+        if (AvailableBall + EnteringBall < TargetBall)
+        {
+            OtherSounds[0].Play();
+            LostLevelCount.text = "LEVEL: " + LevelName;
+            Panels[2].SetActive(true);
+        }
     }
     public void StopGame()
     {

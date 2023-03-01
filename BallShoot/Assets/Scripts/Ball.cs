@@ -5,9 +5,9 @@ using UnityEngine;
 
 public class Ball : MonoBehaviour
 {
-    Rigidbody rb;
     public GameManager manager;
-    Renderer _color;
+    Rigidbody rb;
+    Renderer _color;  
     private void Start()
     {
         rb = GetComponent<Rigidbody>();
@@ -15,12 +15,10 @@ public class Ball : MonoBehaviour
     }
     private void OnTriggerEnter(Collider other)
     {
-
         if (other.CompareTag("Bucket"))
         {
             TechnicalProcess();
             manager.BallEntered();
-
         }
         else if (other.CompareTag("Ground"))
         {
